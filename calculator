@@ -1,0 +1,1437 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inconveniëntiescore Calculator | CAO Dagbladjournalisten</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #0f1419;
+            --color-card: #1a2027;
+            --color-card-hover: #232b35;
+            --color-primary: #e8a838;
+            --color-primary-soft: rgba(232, 168, 56, 0.15);
+            --color-primary-glow: rgba(232, 168, 56, 0.3);
+            --color-text: #e7e9ea;
+            --color-text-muted: #8b98a5;
+            --color-border: #2f3942;
+            --color-success: #00ba7c;
+            --color-success-soft: rgba(0, 186, 124, 0.15);
+            --color-info: #5c9ce6;
+            --color-info-soft: rgba(92, 156, 230, 0.15);
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'Source Sans 3', -apple-system, sans-serif;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(232, 168, 56, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(92, 156, 230, 0.06) 0%, transparent 50%),
+                var(--color-bg);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--color-primary-soft);
+            color: var(--color-primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: clamp(28px, 5vw, 38px);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--color-text) 0%, var(--color-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--color-text-muted);
+            font-size: 17px;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 40px;
+            animation: fadeIn 0.6s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--color-border);
+            transform: translateY(-50%);
+            border-radius: 2px;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            height: 3px;
+            background: var(--color-primary);
+            transform: translateY(-50%);
+            border-radius: 2px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 12px var(--color-primary-glow);
+        }
+
+        .step-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--color-card);
+            border: 3px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .step-dot.active {
+            border-color: var(--color-primary);
+            background: var(--color-primary);
+            color: var(--color-bg);
+            box-shadow: 0 0 20px var(--color-primary-glow);
+        }
+
+        .step-dot.completed {
+            border-color: var(--color-success);
+            background: var(--color-success);
+            color: var(--color-bg);
+        }
+
+        .step-dot:hover:not(.active) {
+            border-color: var(--color-text-muted);
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .step-label {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            text-align: center;
+            width: 60px;
+            margin-left: -14px;
+            transition: color 0.3s;
+        }
+
+        .step-label.active {
+            color: var(--color-primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card.hidden {
+            display: none;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .step-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--color-primary-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .step-description {
+            color: var(--color-text-muted);
+            font-size: 15px;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: var(--color-info-soft);
+            border-left: 3px solid var(--color-info);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: var(--color-info);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 16px 60px 16px 20px;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-size: 18px;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px var(--color-primary-soft);
+        }
+
+        .input-suffix {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted);
+            font-size: 15px;
+        }
+
+        /* Radio Cards */
+        .radio-cards {
+            display: grid;
+            gap: 12px;
+        }
+
+        .radio-card {
+            position: relative;
+        }
+
+        .radio-card input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .radio-card label {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            background: var(--color-bg);
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0;
+        }
+
+        .radio-card label:hover {
+            border-color: var(--color-text-muted);
+            background: var(--color-card-hover);
+        }
+
+        .radio-card input:checked + label {
+            border-color: var(--color-primary);
+            background: var(--color-primary-soft);
+        }
+
+        .radio-marker {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .radio-card input:checked + label .radio-marker {
+            border-color: var(--color-primary);
+            background: var(--color-primary);
+        }
+
+        .radio-marker::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-bg);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s;
+        }
+
+        .radio-card input:checked + label .radio-marker::after {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .radio-content {
+            flex: 1;
+        }
+
+        .radio-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+
+        .radio-desc {
+            font-size: 13px;
+            color: var(--color-text-muted);
+        }
+
+        .radio-score {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Score Display */
+        .score-display {
+            background: linear-gradient(135deg, var(--color-card) 0%, var(--color-card-hover) 100%);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            text-align: center;
+            margin-top: 24px;
+        }
+
+        .score-label {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .score-value {
+            font-family: var(--font-display);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 24px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--color-border);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--color-text-muted);
+            background: var(--color-card-hover);
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            border: 2px solid var(--color-primary);
+            color: var(--color-bg);
+        }
+
+        .btn-primary:hover {
+            background: #f0b44a;
+            border-color: #f0b44a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--color-primary-glow);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Results */
+        .results-grid {
+            display: grid;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .result-card {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .result-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .result-icon.days {
+            background: var(--color-success-soft);
+        }
+
+        .result-icon.salary {
+            background: var(--color-primary-soft);
+        }
+
+        .result-content {
+            flex: 1;
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: var(--color-text-muted);
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .result-value.days {
+            color: var(--color-success);
+        }
+
+        .result-value.salary {
+            color: var(--color-primary);
+        }
+
+        /* Score Breakdown */
+        .breakdown {
+            background: var(--color-bg);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--color-border);
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--color-border);
+            font-size: 14px;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-item.total {
+            background: var(--color-card);
+            font-weight: 600;
+        }
+
+        .breakdown-score {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Total Score Circle */
+        .total-score-wrapper {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .total-score-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary-soft) 0%, transparent 100%);
+            border: 4px solid var(--color-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            box-shadow: 0 0 40px var(--color-primary-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 40px var(--color-primary-glow); }
+            50% { box-shadow: 0 0 60px var(--color-primary-glow); }
+        }
+
+        .total-score-value {
+            font-family: var(--font-display);
+            font-size: 52px;
+            font-weight: 700;
+            color: var(--color-primary);
+            line-height: 1;
+        }
+
+        .total-score-label {
+            font-size: 13px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-tier {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .tier-low {
+            background: var(--color-info-soft);
+            color: var(--color-info);
+        }
+
+        .tier-medium {
+            background: var(--color-primary-soft);
+            color: var(--color-primary);
+        }
+
+        .tier-high {
+            background: var(--color-success-soft);
+            color: var(--color-success);
+        }
+
+        /* Restart Button */
+        .restart-section {
+            text-align: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--color-border);
+        }
+
+        .btn-restart {
+            background: transparent;
+            border: none;
+            color: var(--color-text-muted);
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .btn-restart:hover {
+            color: var(--color-text);
+            background: var(--color-card-hover);
+        }
+
+        /* Slider */
+        .slider-container {
+            margin-top: 16px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--color-border);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--color-text-muted);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 24px 16px;
+            }
+
+            .card {
+                padding: 24px 20px;
+            }
+
+            .step-label {
+                font-size: 9px;
+                width: 50px;
+            }
+
+            .step-dot {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .result-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <div class="container">
+        <header>
+            <span class="badge">CAO Dagbladjournalisten</span>
+            <h1>Inconveniëntiescore Calculator</h1>
+            <p class="subtitle">Bereken je recht op extra vrije dagen en salaristoeslag</p>
+        </header>
+
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-steps">
+                <div class="progress-line" id="progressLine"></div>
+                <div class="step-dot active" data-step="1">1</div>
+                <div class="step-dot" data-step="2">2</div>
+                <div class="step-dot" data-step="3">3</div>
+                <div class="step-dot" data-step="4">4</div>
+                <div class="step-dot" data-step="5">5</div>
+                <div class="step-dot" data-step="6">6</div>
+                <div class="step-dot" data-step="7">✓</div>
+            </div>
+            <div class="progress-labels">
+                <span class="step-label active">Avond/Nacht</span>
+                <span class="step-label">Onregelmatig</span>
+                <span class="step-label">Weekend</span>
+                <span class="step-label">Kilometers</span>
+                <span class="step-label">Afwezigheid</span>
+                <span class="step-label">Pieper</span>
+                <span class="step-label">Resultaat</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Onaangename uren -->
+        <div class="card step-card" data-step="1">
+            <div class="step-header">
+                <div class="step-icon">🌙</div>
+                <div>
+                    <h2 class="step-title">Avond- en nachtwerk</h2>
+                    <p class="step-description">Uren buiten de reguliere kantoortijden (doordeweeks)</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Wat telt mee?</strong> Alle uren die je werkt tussen <strong>18:00 en 08:00 uur</strong>, exclusief weekendwerk. Tel dit op over een periode van 4 weken.
+            </div>
+
+            <div class="form-group">
+                <label>Hoeveel uur werk je 's avonds/nachts per 4 weken?</label>
+                <div class="input-wrapper">
+                    <input type="number" id="avondUren" min="0" max="152" value="0" step="1">
+                    <span class="input-suffix">uur</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="avondUrenSlider" min="0" max="80" value="0">
+                    <div class="slider-labels">
+                        <span>0 uur</span>
+                        <span>40 uur</span>
+                        <span>80+ uur</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score1">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Volgende
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Onregelmatigheid -->
+        <div class="card step-card hidden" data-step="2">
+            <div class="step-header">
+                <div class="step-icon">🔀</div>
+                <div>
+                    <h2 class="step-title">Onregelmatig werk</h2>
+                    <p class="step-description">Onvoorspelbare en niet-planbare werkzaamheden</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Denk aan:</strong> Last-minute opdrachten, breaking news, onverwachte verslaggeving die je planning verstoort.
+            </div>
+
+            <div class="form-group">
+                <label>Hoe vaak komt onvoorspelbaar werk voor?</label>
+                <div class="radio-cards">
+                    <div class="radio-card">
+                        <input type="radio" name="onregelmatig" id="onregel0" value="0" checked>
+                        <label for="onregel0">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Geen / Zelden</div>
+                                <div class="radio-desc">Mijn werk is voorspelbaar en goed te plannen</div>
+                            </div>
+                            <span class="radio-score">0</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="onregelmatig" id="onregel6" value="6">
+                        <label for="onregel6">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Incidenteel</div>
+                                <div class="radio-desc">Minder dan 1x per week onverwachte wijzigingen</div>
+                            </div>
+                            <span class="radio-score">6</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="onregelmatig" id="onregel14" value="14">
+                        <label for="onregel14">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Regelmatig</div>
+                                <div class="radio-desc">1-2x per week moet ik mijn planning aanpassen</div>
+                            </div>
+                            <span class="radio-score">14</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="onregelmatig" id="onregel20" value="20">
+                        <label for="onregel20">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Dagelijks</div>
+                                <div class="radio-desc">Meer dan 2x per week onvoorspelbare taken</div>
+                            </div>
+                            <span class="radio-score">20</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score2">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                    Terug
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Volgende
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 3: Weekenden -->
+        <div class="card step-card hidden" data-step="3">
+            <div class="step-header">
+                <div class="step-icon">📅</div>
+                <div>
+                    <h2 class="step-title">Weekendwerk</h2>
+                    <p class="step-description">Werkdagen in het weekend (vrijdagnacht t/m maandagochtend)</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Weekend = </strong> vrijdag 24:00 tot maandag 06:00. Een deel van een dag telt als een hele dag.
+            </div>
+
+            <div class="form-group">
+                <label>Hoeveel dagen werk je in het weekend per 4 weken?</label>
+                <div class="input-wrapper">
+                    <input type="number" id="weekendDagen" min="0" max="16" value="0" step="1">
+                    <span class="input-suffix">dagen</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" id="weekendSlider" min="0" max="8" value="0">
+                    <div class="slider-labels">
+                        <span>0 dagen</span>
+                        <span>4 dagen</span>
+                        <span>8+ dagen</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score3">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                    Terug
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Volgende
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Ambulantie -->
+        <div class="card step-card hidden" data-step="4">
+            <div class="step-header">
+                <div class="step-icon">🚗</div>
+                <div>
+                    <h2 class="step-title">Zakelijke kilometers</h2>
+                    <p class="step-description">Ben je veel onderweg voor je werk?</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Let op:</strong> Alleen <strong>zakelijke kilometers</strong> tellen mee. Woon-werkverkeer telt niet.
+            </div>
+
+            <div class="form-group">
+                <label>Rijd je meer dan 20.000 zakelijke km per jaar?</label>
+                <div class="radio-cards">
+                    <div class="radio-card">
+                        <input type="radio" name="ambulantie" id="amb0" value="0" checked>
+                        <label for="amb0">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Nee</div>
+                                <div class="radio-desc">Minder dan 20.000 km zakelijk per jaar</div>
+                            </div>
+                            <span class="radio-score">0</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="ambulantie" id="amb5" value="5">
+                        <label for="amb5">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Ja</div>
+                                <div class="radio-desc">Meer dan 20.000 km zakelijk per jaar</div>
+                            </div>
+                            <span class="radio-score">5</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score4">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                    Terug
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Volgende
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 5: Afwezigheid -->
+        <div class="card step-card hidden" data-step="5">
+            <div class="step-header">
+                <div class="step-icon">🏠</div>
+                <div>
+                    <h2 class="step-title">Afwezigheid van huis</h2>
+                    <p class="step-description">Langere aaneengesloten periodes weg voor werk</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Denk aan:</strong> Meerdaagse verslaggeving, buitenlandse reizen, evenementen waar je overnacht.
+            </div>
+
+            <div class="form-group">
+                <label>Hoe vaak ben je aaneengesloten van huis voor werk?</label>
+                <div class="radio-cards">
+                    <div class="radio-card">
+                        <input type="radio" name="afwezigheid" id="afw0" value="0" checked>
+                        <label for="afw0">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Nooit / Zelden</div>
+                                <div class="radio-desc">Ik ben 's avonds altijd thuis</div>
+                            </div>
+                            <span class="radio-score">0</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="afwezigheid" id="afw2" value="2">
+                        <label for="afw2">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Enkele keren per jaar</div>
+                                <div class="radio-desc">Af en toe een overnachting voor werk</div>
+                            </div>
+                            <span class="radio-score">2</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="afwezigheid" id="afw5" value="5">
+                        <label for="afw5">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Regelmatig / Langere periodes</div>
+                                <div class="radio-desc">Vaak of lang van huis voor opdrachten</div>
+                            </div>
+                            <span class="radio-score">5</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score5">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                    Terug
+                </button>
+                <button class="btn btn-primary" onclick="nextStep()">
+                    Volgende
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 6: Pieperdienst -->
+        <div class="card step-card hidden" data-step="6">
+            <div class="step-header">
+                <div class="step-icon">📱</div>
+                <div>
+                    <h2 class="step-title">Pieperdienst</h2>
+                    <p class="step-description">Bereikbaarheidsdienst buiten je normale rooster</p>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Dit gaat over:</strong> Buiten kantoortijd bereikbaar zijn (exclusief weekend). Je hoeft niet te werken, maar moet wel beschikbaar zijn.
+            </div>
+
+            <div class="form-group">
+                <label>Heb je pieperdienst of bereikbaarheidsdienst?</label>
+                <div class="radio-cards">
+                    <div class="radio-card">
+                        <input type="radio" name="pieper" id="piep0" value="0" checked>
+                        <label for="piep0">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Geen</div>
+                                <div class="radio-desc">Ik hoef buiten werktijd niet bereikbaar te zijn</div>
+                            </div>
+                            <span class="radio-score">0</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="pieper" id="piep5" value="5">
+                        <label for="piep5">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Incidenteel</div>
+                                <div class="radio-desc">Minder dan 1x per week bereikbaarheidsdienst</div>
+                            </div>
+                            <span class="radio-score">5</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="pieper" id="piep10" value="10">
+                        <label for="piep10">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Regelmatig</div>
+                                <div class="radio-desc">1-2x per week bereikbaarheidsdienst</div>
+                            </div>
+                            <span class="radio-score">10</span>
+                        </label>
+                    </div>
+                    <div class="radio-card">
+                        <input type="radio" name="pieper" id="piep15" value="15">
+                        <label for="piep15">
+                            <span class="radio-marker"></span>
+                            <div class="radio-content">
+                                <div class="radio-title">Dagelijks</div>
+                                <div class="radio-desc">Meer dan 2x per week bereikbaar</div>
+                            </div>
+                            <span class="radio-score">15</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="score-display">
+                <div class="score-label">Score voor dit onderdeel</div>
+                <div class="score-value" id="score6">0</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="btn btn-secondary" onclick="prevStep()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+                    Terug
+                </button>
+                <button class="btn btn-primary" onclick="showResults()">
+                    Bekijk resultaat
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card step-card hidden" data-step="7">
+            <div class="step-header">
+                <div class="step-icon">🎉</div>
+                <div>
+                    <h2 class="step-title">Jouw resultaat</h2>
+                    <p class="step-description">Gebaseerd op artikel 21 van de CAO Dagbladjournalisten</p>
+                </div>
+            </div>
+
+            <div class="total-score-wrapper">
+                <div class="total-score-circle">
+                    <div class="total-score-value" id="totalScore">0</div>
+                    <div class="total-score-label">punten</div>
+                </div>
+                <span class="score-tier" id="scoreTier">Berekenen...</span>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-card">
+                    <div class="result-icon days">🏖️</div>
+                    <div class="result-content">
+                        <div class="result-title">Extra vrije dagen per jaar</div>
+                        <div class="result-value days" id="extraDays">0 dagen</div>
+                    </div>
+                </div>
+                <div class="result-card">
+                    <div class="result-icon salary">💰</div>
+                    <div class="result-content">
+                        <div class="result-title">Salaristoeslag</div>
+                        <div class="result-value salary" id="salaryBonus">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Score per onderdeel</h3>
+            <div class="breakdown">
+                <div class="breakdown-item">
+                    <span>🌙 Avond- en nachtwerk</span>
+                    <span class="breakdown-score" id="bd1">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>🔀 Onregelmatig werk</span>
+                    <span class="breakdown-score" id="bd2">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>📅 Weekendwerk</span>
+                    <span class="breakdown-score" id="bd3">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>🚗 Zakelijke kilometers</span>
+                    <span class="breakdown-score" id="bd4">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>🏠 Afwezigheid van huis</span>
+                    <span class="breakdown-score" id="bd5">0</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>📱 Pieperdienst</span>
+                    <span class="breakdown-score" id="bd6">0</span>
+                </div>
+                <div class="breakdown-item total">
+                    <span>Totaal</span>
+                    <span class="breakdown-score" id="bdTotal">0</span>
+                </div>
+            </div>
+
+            <div class="restart-section">
+                <button class="btn-restart" onclick="restart()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Opnieuw berekenen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 7;
+
+        // Score calculations
+        function calculateScore1() {
+            const uren = parseFloat(document.getElementById('avondUren').value) || 0;
+            const percentage = uren / 152;
+            if (percentage < 0.1) return 0;
+            return Math.min(30, Math.ceil(percentage / 0.1) * 6);
+        }
+
+        function calculateScore3() {
+            const dagen = Math.ceil(parseFloat(document.getElementById('weekendDagen').value) || 0);
+            if (dagen === 0) return 0;
+            if (dagen === 1) return 8;
+            if (dagen <= 3) return 16;
+            if (dagen <= 5) return 24;
+            if (dagen <= 7) return 32;
+            return 40;
+        }
+
+        function getRadioValue(name) {
+            const selected = document.querySelector(`input[name="${name}"]:checked`);
+            return selected ? parseInt(selected.value) : 0;
+        }
+
+        function updateScores() {
+            const score1 = calculateScore1();
+            const score2 = getRadioValue('onregelmatig');
+            const score3 = calculateScore3();
+            const score4 = getRadioValue('ambulantie');
+            const score5 = getRadioValue('afwezigheid');
+            const score6 = getRadioValue('pieper');
+
+            document.getElementById('score1').textContent = score1;
+            document.getElementById('score2').textContent = score2;
+            document.getElementById('score3').textContent = score3;
+            document.getElementById('score4').textContent = score4;
+            document.getElementById('score5').textContent = score5;
+            document.getElementById('score6').textContent = score6;
+
+            return { score1, score2, score3, score4, score5, score6 };
+        }
+
+        function updateProgress() {
+            const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progressLine').style.width = percentage + '%';
+
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                const stepNum = index + 1;
+                dot.classList.remove('active', 'completed');
+                if (stepNum < currentStep) {
+                    dot.classList.add('completed');
+                    dot.innerHTML = '✓';
+                } else if (stepNum === currentStep) {
+                    dot.classList.add('active');
+                    dot.innerHTML = stepNum === 7 ? '✓' : stepNum;
+                } else {
+                    dot.innerHTML = stepNum === 7 ? '✓' : stepNum;
+                }
+            });
+
+            document.querySelectorAll('.step-label').forEach((label, index) => {
+                label.classList.toggle('active', index + 1 === currentStep);
+            });
+        }
+
+        function showStep(step) {
+            document.querySelectorAll('.step-card').forEach(card => {
+                card.classList.add('hidden');
+            });
+            const targetCard = document.querySelector(`.step-card[data-step="${step}"]`);
+            if (targetCard) {
+                targetCard.classList.remove('hidden');
+                // Re-trigger animation
+                targetCard.style.animation = 'none';
+                targetCard.offsetHeight; // Trigger reflow
+                targetCard.style.animation = 'slideUp 0.5s ease-out';
+            }
+            currentStep = step;
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                showStep(currentStep + 1);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                showStep(currentStep - 1);
+            }
+        }
+
+        function showResults() {
+            const scores = updateScores();
+            const total = scores.score1 + scores.score2 + scores.score3 + 
+                         scores.score4 + scores.score5 + scores.score6;
+
+            // Update breakdown
+            document.getElementById('bd1').textContent = scores.score1;
+            document.getElementById('bd2').textContent = scores.score2;
+            document.getElementById('bd3').textContent = scores.score3;
+            document.getElementById('bd4').textContent = scores.score4;
+            document.getElementById('bd5').textContent = scores.score5;
+            document.getElementById('bd6').textContent = scores.score6;
+            document.getElementById('bdTotal').textContent = total;
+
+            // Animate total score
+            const totalEl = document.getElementById('totalScore');
+            let current = 0;
+            const duration = 1000;
+            const step = total / (duration / 16);
+            const animate = () => {
+                current += step;
+                if (current < total) {
+                    totalEl.textContent = Math.floor(current);
+                    requestAnimationFrame(animate);
+                } else {
+                    totalEl.textContent = total;
+                }
+            };
+            animate();
+
+            // Calculate benefits
+            let extraDays = 0;
+            if (total >= 21 && total <= 80) extraDays = 3;
+            else if (total > 80) extraDays = 5;
+
+            let salaryBonus = '0%';
+            if (total >= 31 && total <= 40) salaryBonus = '1%';
+            else if (total >= 41 && total <= 60) salaryBonus = '3%';
+            else if (total >= 61 && total <= 80) salaryBonus = '5%';
+            else if (total > 80) salaryBonus = '7%';
+
+            document.getElementById('extraDays').textContent = extraDays + ' dagen';
+            document.getElementById('salaryBonus').textContent = salaryBonus;
+
+            // Score tier
+            const tierEl = document.getElementById('scoreTier');
+            if (total < 21) {
+                tierEl.textContent = 'Standaard werksituatie';
+                tierEl.className = 'score-tier tier-low';
+            } else if (total <= 50) {
+                tierEl.textContent = 'Matige inconveniëntie';
+                tierEl.className = 'score-tier tier-medium';
+            } else {
+                tierEl.textContent = 'Hoge inconveniëntie';
+                tierEl.className = 'score-tier tier-high';
+            }
+
+            showStep(7);
+        }
+
+        function restart() {
+            // Reset all inputs
+            document.getElementById('avondUren').value = 0;
+            document.getElementById('avondUrenSlider').value = 0;
+            document.getElementById('weekendDagen').value = 0;
+            document.getElementById('weekendSlider').value = 0;
+            
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                if (radio.value === '0') radio.checked = true;
+                else radio.checked = false;
+            });
+
+            updateScores();
+            showStep(1);
+        }
+
+        // Event listeners
+        document.getElementById('avondUren').addEventListener('input', function() {
+            document.getElementById('avondUrenSlider').value = Math.min(80, this.value);
+            updateScores();
+        });
+
+        document.getElementById('avondUrenSlider').addEventListener('input', function() {
+            document.getElementById('avondUren').value = this.value;
+            updateScores();
+        });
+
+        document.getElementById('weekendDagen').addEventListener('input', function() {
+            document.getElementById('weekendSlider').value = Math.min(8, this.value);
+            updateScores();
+        });
+
+        document.getElementById('weekendSlider').addEventListener('input', function() {
+            document.getElementById('weekendDagen').value = this.value;
+            updateScores();
+        });
+
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', updateScores);
+        });
+
+        // Click on progress dots
+        document.querySelectorAll('.step-dot').forEach(dot => {
+            dot.addEventListener('click', function() {
+                const step = parseInt(this.dataset.step);
+                if (step < currentStep || (step === 7 && currentStep === 6)) {
+                    if (step === 7) {
+                        showResults();
+                    } else {
+                        showStep(step);
+                    }
+                }
+            });
+        });
+
+        // Initialize
+        updateScores();
+        updateProgress();
+    </script>
+</body>
+</html>
